@@ -1,0 +1,60 @@
+export default async function handler(req, res) {
+  // Configuration CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Répondre aux requêtes OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Méthode non autorisée' });
+  }
+
+  const { text } = req.body;
+
+  if (!text || text.trim().length === 0) {
+    return res.status(400).json({ error: 'Texte manquant' });
+  }
+
+  try {
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/facebook/bart-large-cnn",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          inputs: `paraphrase: ${text}`,
+          parameters: {
+            max_length: 500,
+            temperature: 0.7
+          }
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Hugging Face API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    const result = data[0]?.summary_text || data[0]?.generated_text || "Impossible de paraphraser ce texte.";
+    
+    res.status(200).json({ result });
+  } catch (error) {
+    console.error('Erreur:', error);
+    res.status(500).json({ 
+      error: 'Erreur lors de la paraphrase. Réessayez plus tard.' 
+    });
+  }
+}
