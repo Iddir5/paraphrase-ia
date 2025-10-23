@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réécriture IA - Paraphraser gratuitement</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .input-section, .output-section {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      color: #555;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 16px;
+      resize: vertical;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .char-count {
+      text-align: right;
+      color: #999;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin: 20px 0;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .output-box {
+      background: #f8f9fa;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      min-height: 150px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-style: italic;
+    }
+    .error {
+      background: #ffe6e6;
+      border-color: #ff4444;
+      color: #cc0000;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+      color: #999;
+    }
+    .copy-btn {
+      background: #28a745;
+      padding: 8px 15px;
+      font-size: 14px;
+      margin-top: 10px;
+      width: auto;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 Réécriture IA</h1>
+    <p class="subtitle">Paraphrasez vos textes gratuitement avec l'intelligence artificielle</p>
+    
+    <div class="input-section">
+      <label for="inputText">📝 Votre texte original :</label>
+      <textarea 
+        id="inputText" 
+        rows="6" 
+        placeholder="Collez ou tapez votre texte ici..."
+        oninput="updateCharCount()"
+      ></textarea>
+      <div class="char-count" id="charCount">0 caractères</div>
+    </div>
+
+    <button id="paraphraseBtn" onclick="paraphraser()">
+      ✨ Réécrire le texte
+    </button>
+
+    <div class="output-section" id="outputSection" style="display:none;">
+      <label>✅ Texte réécrit :</label>
+      <div class="output-box" id="outputText"></div>
+      <button class="copy-btn" onclick="copier()">📋 Copier le résultat</button>
+    </div>
+
+    <footer>
+      © 2025 ReecrireIA - Créé par Mehdi | Gratuit et sans inscription
+    </footer>
+  </div>
+
+  <script>
+    function updateCharCount() {
+      const text = document.getElementById('inputText').value;
+      document.getElementById('charCount').textContent = text.length + ' caractères';
+    }
+
+    async function paraphraser() {
+      const inputText = document.getElementById('inputText').value.trim();
+      const outputSection = document.getElementById('outputSection');
+      const outputBox = document.getElementById('outputText');
+      const btn = document.getElementById('paraphraseBtn');
+
+      if (!inputText) {
+        alert('⚠️ Veuillez entrer un texte à paraphraser');
+        return;
+      }
+
+      // Afficher le chargement
+      btn.disabled = true;
+      btn.textContent = '⏳ Réécriture en cours...';
+      outputSection.style.display = 'block';
+      outputBox.className = 'output-box loading';
+      outputBox.textContent = 'Traitement de votre texte par l\'IA...';
+
+      try {
+        // Appel à votre API Vercel
+        const response = await fetch('/api/paraphrase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: inputText })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.result) {
+          outputBox.className = 'output-box';
+          outputBox.textContent = data.result;
+        } else {
+          throw new Error(data.error || 'Erreur inconnue');
+        }
+      } catch (error) {
+        outputBox.className = 'output-box error';
+        outputBox.textContent = '❌ Erreur : ' + error.message + '\n\nVeuillez réessayer.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Réécrire le texte';
+      }
+    }
+
+    function copier() {
+      const text = document.getElementById('outputText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Texte copié dans le presse-papier !');
+      });
+    }
+  </script>
+</body>
+</html>
