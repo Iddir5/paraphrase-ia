@@ -1,6 +1,28 @@
 {
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/$1" }
+    { "source": "/(.*)", "destination": "/public/$1" }
   ]
 }
+```
+
+4. Cliquez sur **Commit changes**
+
+---
+
+## ⏳ Attendez le redéploiement
+
+Vercel va automatiquement redéployer votre site (1-2 minutes).
+
+Ensuite, retournez sur : **https://paraphrase-ia.vercel.app**
+
+---
+
+## 📁 Structure finale attendue :
+```
+paraphrase-ia/
+├── public/
+│   └── index.html
+├── api/
+│   └── paraphrase.js
+├── vercel.json
+└── README.md
